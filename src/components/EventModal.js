@@ -2,8 +2,10 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import DragIndicatorOutlinedIcon from '@mui/icons-material/DragIndicatorOutlined';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import GlobalContext from "../context/GlobalContext";
+import Select from "react-select"
+import axios from 'axios';
 
 const labelsClasses = [
   "indigo",
@@ -22,6 +24,7 @@ export default function EventModal() {
     selectedEvent,
   } = useContext(GlobalContext);
 
+
   const [title, setTitle] = useState(
     selectedEvent ? selectedEvent.title : ""
   );
@@ -37,27 +40,60 @@ export default function EventModal() {
     selectedEvent ? selectedEvent.activity : ""
   )
 
-  const [activityType, setActivityType] = useState(
-    selectedEvent ? selectedEvent.activityType : ""
+  const [activity_type, setActivityType] = useState(
+    selectedEvent ? selectedEvent.activity_type : ""
   )
+
+  const [activityTypes, setActivityTypes] = useState([])
+  const [activities, setActivities] = useState([])
+  const [id, setId] = useState("1")
+
+  const handleActivityTypeChange = (e) => {
+    setActivityType(e.value)
+    setId(e.value)
+  }
+
+  const handleActivityChange = (e) => {
+    setActivity(e.value)
+  }
+
+  useEffect(() => {
+    const getActivityTypes = async () => {
+      const resp = await axios("http://localhost:8000/activity-type/")
+      const data = await resp.data
+      setActivityTypes(data)
+    }
+    getActivityTypes()
+  }, [])
+
+  useEffect(() => {
+    const getActivities = async () => {
+      const resp = await axios(`http://localhost:8000/activity/activity-type/${id}/`)
+      const data = await resp.data
+      setActivities(data)
+    }
+    getActivities()
+  }, [id])
+
+
 
   function handleSubmit(e) {
     e.preventDefault();
     const calendarEvent = {
       title,
       description,
+      activity_type,
       activity,
-      activityType,
       label: selectedLabel,
-      day: daySelected.valueOf(),
+      day: JSON.parse(daySelected.valueOf()),
       id: selectedEvent ? selectedEvent.id : Date.now(),
     };
+    console.log('sent from front', new Date(calendarEvent.day))
     if (selectedEvent) {
       dispatchCalEvent({ type: "update", payload: calendarEvent });
     } else {
       dispatchCalEvent({ type: "push", payload: calendarEvent });
     }
-
     setShowEventModal(false);
   }
   return (
@@ -65,9 +101,6 @@ export default function EventModal() {
       <form className="bg-white rounded-lg shadow-2xl w-1/4">
         <header className="bg-gray-100 px-4 py-2 flex justify-between items-center">
           <DragIndicatorOutlinedIcon />
-          {/* <span className="material-icons-outlined text-gray-400"> */}
-          {/*   drag_handle */}
-          {/* </span> */}
           <div>
             {selectedEvent && (
               <span
@@ -85,9 +118,6 @@ export default function EventModal() {
             )}
             <button onClick={() => setShowEventModal(false)}>
               <CloseOutlinedIcon />
-              {/* <span className="material-icons-outlined text-gray-400"> */}
-              {/*   close */}
-              {/* </span> */}
             </button>
           </div>
         </header>
@@ -97,7 +127,7 @@ export default function EventModal() {
             <input
               type="text"
               name="title"
-              placeholder="Add title"
+              placeholder="Add Title"
               value={title}
               required
               className="pt-3 border-0 text-gray-600 text-xl font-semibold pb-2 w-full border-b-2 border-gray-200 focus:outline-none focus:ring-0 focus:border-blue-500"
@@ -108,6 +138,18 @@ export default function EventModal() {
             <p>{daySelected.format("dddd, MMMM DD")}</p>
             <span className="material-icons-outlined text-gray-400">
             </span>
+
+            <Select options={activityTypes.map((actp) => {
+              const { id, activity_type } = actp
+              return { value: id, label: activity_type }
+            })} onChange={handleActivityTypeChange} placeholder="select an activity type" />
+            <span className="material-icons-outlined text-gray-400"></span>
+            <Select options={activities.map((act) => {
+              const { id, activity } = act
+              return { value: id, label: activity }
+            })} onChange={handleActivityChange} placeholder="select an activity" />
+            <span className="material-icons-outlined text-gray-400">
+            </span>
             <input
               type="text"
               name="description"
@@ -116,28 +158,6 @@ export default function EventModal() {
               required
               className="pt-3 border-0 text-gray-600 pb-2 w-full border-b-2 border-gray-200 focus:outline-none focus:ring-0 focus:border-blue-500"
               onChange={(e) => setDescription(e.target.value)}
-            />
-            <span className="material-icons-outlined text-gray-400">
-            </span>
-            <input
-              type="text"
-              name="activityType"
-              placeholder="Add an activity type"
-              value={activityType}
-              required
-              className="pt-3 border-0 text-gray-600 pb-2 w-full border-b-2 border-gray-200 focus:outline-none focus:ring-0 focus:border-blue-500"
-              onChange={(e) => setActivityType(e.target.value)}
-            />
-            <span className="material-icons-outlined text-gray-400">
-            </span>
-            <input
-              type="text"
-              name="activity"
-              placeholder="Add an activity"
-              value={activity}
-              required
-              className="pt-3 border-0 text-gray-600 pb-2 w-full border-b-2 border-gray-200 focus:outline-none focus:ring-0 focus:border-blue-500"
-              onChange={(e) => setActivity(e.target.value)}
             />
             <span className="material-icons-outlined text-gray-400">
             </span>

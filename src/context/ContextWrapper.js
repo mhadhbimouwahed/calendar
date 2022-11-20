@@ -6,11 +6,32 @@ import React, {
 } from "react";
 import GlobalContext from "./GlobalContext";
 import dayjs from "dayjs";
+import axios from "axios";
 
 function savedEventsReducer(state, { type, payload }) {
   switch (type) {
-    case "push":
-      return [...state, payload];
+    case "push": {
+      const { title, description, activity_type, activity, label, day, id } = payload
+      const event = new Date(day)
+      console.log("recieved from backend", event)
+      console.log(event.toLocaleDateString("en-US"))
+
+      /*       const timestamp = event.getFullYear() + '-' + event.getMonth() + '-' + event.getDay() */
+      // console.log(timestamp)
+      // const data = {
+      //   title: title,
+      //   description: description,
+      //   activity_type: activity_type,
+      //   activity: activity,
+      //   labe: label,
+      //   day: timestamp
+      // }
+      // console.log(data)
+      // axios.post("http://localhost:8000/sheet/", data)
+      //   .then((resp) => console.log(resp.data))
+      //   .catch((err) => console.log(err))
+      /* return [...state, payload]; */
+    }
     case "update":
       return state.map((evt) =>
         evt.id === payload.id ? payload : evt
@@ -21,6 +42,7 @@ function savedEventsReducer(state, { type, payload }) {
       throw new Error();
   }
 }
+
 function initEvents() {
   const storageEvents = localStorage.getItem("savedEvents");
   const parsedEvents = storageEvents ? JSON.parse(storageEvents) : [];
@@ -34,6 +56,8 @@ export default function ContextWrapper(props) {
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [labels, setLabels] = useState([]);
+
+  const [timesheets, setTimesheets] = useState([])
   const [savedEvents, dispatchCalEvent] = useReducer(
     savedEventsReducer,
     [],
@@ -87,6 +111,15 @@ export default function ContextWrapper(props) {
     );
   }
 
+  useEffect(() => {
+    const getTimeSheets = async () => {
+      const resp = await axios("http://localhost:8000/sheet/")
+      const data = resp.data
+      setTimesheets(data)
+    }
+    getTimeSheets()
+  }, [])
+
   return (
     <GlobalContext.Provider
       value={{
@@ -106,6 +139,7 @@ export default function ContextWrapper(props) {
         labels,
         updateLabel,
         filteredEvents,
+        timesheets,
       }}
     >
       {props.children}

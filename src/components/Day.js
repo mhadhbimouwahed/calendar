@@ -7,20 +7,31 @@ export default function Day({ day, rowIdx }) {
   const {
     setDaySelected,
     setShowEventModal,
-    filteredEvents,
+    /* filteredEvents, */
+    timesheets,
     setSelectedEvent,
   } = useContext(GlobalContext);
 
+
+  // useEffect(() => {
+  //   const events = filteredEvents.filter(
+  //     (evt) =>
+  //       dayjs(evt.day).format("DD-MM-YY") === day.format("DD-MM-YY")
+  //   );
+  //   setDayEvents(events);
+  // }, [filteredEvents, day]);
+  //
+
   useEffect(() => {
-    const events = filteredEvents.filter(
-      (evt) =>
-        dayjs(evt.day).format("DD-MM-YY") === day.format("DD-MM-YY")
-    );
-    setDayEvents(events);
-  }, [filteredEvents, day]);
+    const events = timesheets.filter((evt) =>
+      dayjs(evt.day).format("DD-MM-YY") === day.format("DD-MM-YY")
+    )
+    setDayEvents(events)
+  }, [timesheets, day])
+
 
   function getCurrentDayClass() {
-    return day.format("DD-MM-YY") === dayjs().format("DD-MM-YY")
+    return day.format("YY-MM-DD") === dayjs().format("YY-MM-DD")
       ? "bg-blue-600 text-white rounded-full w-7"
       : "";
   }
@@ -55,6 +66,7 @@ export default function Day({ day, rowIdx }) {
           </div>
         ))}
       </div>
+
     </div>
   );
 }
