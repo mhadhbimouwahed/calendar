@@ -11,33 +11,31 @@ import axios from "axios";
 function savedEventsReducer(state, { type, payload }) {
   switch (type) {
     case "push": {
-      const { title, description, activity_type, activity, label, day, id } = payload
-      const event = new Date(day)
-      console.log("recieved from backend", event)
-      console.log(event.toLocaleDateString("en-US"))
-
-      /*       const timestamp = event.getFullYear() + '-' + event.getMonth() + '-' + event.getDay() */
-      // console.log(timestamp)
-      // const data = {
-      //   title: title,
-      //   description: description,
-      //   activity_type: activity_type,
-      //   activity: activity,
-      //   labe: label,
-      //   day: timestamp
-      // }
-      // console.log(data)
-      // axios.post("http://localhost:8000/sheet/", data)
-      //   .then((resp) => console.log(resp.data))
-      //   .catch((err) => console.log(err))
-      /* return [...state, payload]; */
+      const { title, description, activity_type, activity, label, day } = payload
+      const data = {
+        title: title,
+        description: description,
+        activity_type: activity_type,
+        activity: activity,
+        label: label,
+        day: new Date(day).toISOString()
+      }
+      axios.post("http://localhost:8000/sheet/", data)
+        .then((resp) => console.log(resp.data))
+        .catch((err) => console.log(err))
+      return [...state, payload];
     }
-    case "update":
+    case "update": {
       return state.map((evt) =>
         evt.id === payload.id ? payload : evt
       );
-    case "delete":
+    }
+    case "delete": {
+      axios.delete(`http://localhost:8000/sheet/${payload.id}/`)
+        .then((resp) => console.log(resp))
+        .catch((err) => console.log(err))
       return state.filter((evt) => evt.id !== payload.id);
+    }
     default:
       throw new Error();
   }
@@ -115,6 +113,7 @@ export default function ContextWrapper(props) {
     const getTimeSheets = async () => {
       const resp = await axios("http://localhost:8000/sheet/")
       const data = resp.data
+      console.log(data)
       setTimesheets(data)
     }
     getTimeSheets()

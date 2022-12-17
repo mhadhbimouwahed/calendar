@@ -88,11 +88,11 @@ export default function EventModal() {
       day: JSON.parse(daySelected.valueOf()),
       id: selectedEvent ? selectedEvent.id : Date.now(),
     };
-    console.log('sent from front', new Date(calendarEvent.day))
     if (selectedEvent) {
       dispatchCalEvent({ type: "update", payload: calendarEvent });
     } else {
       dispatchCalEvent({ type: "push", payload: calendarEvent });
+
     }
     setShowEventModal(false);
   }
